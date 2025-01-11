@@ -1,0 +1,42 @@
+/* 
+	Put the item descreption in English for Quote
+*/
+estimateID = estimate.get("estimate_id");
+estimatedate = estimate.get("date").toDate();
+organizationID = organization.get("organization_id");
+lineItems = estimate.get("line_items");
+
+// loop through each items to put the English Description if exist
+items = list();
+for each  lineItem in lineItems
+{
+	itemId = lineItem.get("item_id");
+	// get item info so we can get the description
+	item = zoho.books.getRecordsByID("items",organizationID,itemId,"zbooks").get("item");
+	// get custome fields
+	custom_fields = item.get("custom_fields");
+	desc = "";
+	// find the Description_EN Field
+	for each  custom_field in custom_fields
+	{
+		if(custom_field.get("label") == "Description_EN")
+		{
+			desc = custom_field.get("value");
+		}
+	}
+	info desc;
+	newlineitemMap = Map();
+	newlineitemMap.put("line_item_id",lineItem.get("line_item_id"));
+	newlineitemMap.put("description",desc);
+	items.add(newlineitemMap);
+}
+// update the description for items
+json = Map();
+json.put("line_items",items);
+update = zoho.books.updateRecord("estimates",organizationID,estimateID,json,"zbooks");
+info update;
+resultMap = Map();
+resultMap.put("message","Done");
+resultMap.put("code",0);
+// 0 - Success ; Other than 0 will consider as failure
+return resultMap;

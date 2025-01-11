@@ -1,0 +1,45 @@
+/*
+	if there is a cost typed or edited loop through each cost for tasks and calculate the total cost
+*/
+
+// get all tasks
+tasks = invokeurl
+[
+	url :"https://projects.zoho.com/restapi/portal/" + portal_id + "/projects/" + project_id + "/tasks/"
+	type :GET
+	connection:"project"
+];
+
+
+// set intital cost to zero
+total = 0;
+// loop through each task and get the cost for this task
+for each  task in tasks.get("tasks")
+{
+	custom_fields = task.get("custom_fields");
+	if(custom_fields.size() > 0)
+	{
+		// find the cost field for task
+		for each  custom_field in custom_fields
+		{	
+			// if this field is the cost
+			if(custom_field.get("label_name") == "Cost")
+			{
+				// get the task cost and update the total
+				val = custom_field.get("value").toNumber();
+				total = total + val;
+			}
+		}
+	}
+}
+mp = Map();
+mp.put("UDF_DOUBLE1",total);
+updateProject = invokeurl
+[
+	url :"https://projects.zoho.com/restapi/portal/" + portal_id + "/projects/" + project_id + "/"
+	type :POST
+	parameters:mp
+	connection:"project"
+];
+//info updateProject;
+return "success";

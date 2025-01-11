@@ -1,0 +1,59 @@
+/*
+This Deluge function automates the process of marking specific tasks in Zoho Projects as 100% complete based on a related ticket in Zoho Desk.
+
+Key Steps:
+Fetch Ticket Details:
+
+Retrieves the ticket using TicketID from Zoho Desk.
+Extracts the associated project ID from the ticket.
+Retrieve Portal ID:
+
+Gets the Zoho Projects portal ID needed for API requests.
+Process Task List:
+
+Iterates over a predefined list of tasks ("Pre Design Approval", "Layout Options").
+Searches for each task in the project and retrieves its task ID.
+Update Task Completion:
+
+Updates the percent_complete field to 100% for each task in the list.
+
+Output:
+Tasks "Pre Design Approval" and "Layout Options" are marked as complete in Zoho Projects.
+*/
+
+tiket = zoho.desk.getRecordById(869305456,"tickets",TicketID,"desk");
+projectID = tiket.get("cf").get("cf_project_id");
+//info projectID;
+ck = zoho.projects.getPortals("project");
+portal_id = ck.getJson("portals").getJson("id");
+m = Map();
+tasks = list("Pre Design Approval,Layout Options");
+for each  tn in tasks
+{
+	m.put("search_term",tn);
+	m.put("module","tasks");
+	t = invokeurl
+	[
+		url :"https://projectsapi.zoho.com/restapi/portal/" + portal_id + "/projects/" + projectID + "/search"
+		type :GET
+		parameters:m
+		connection:"project"
+	];
+	info t;
+	search_result = t.get("tasks");
+	search_count = t.get("tasks_count").toNumber();
+	if(search_count >= 1)
+	{
+		for each  task in search_result
+		{
+			if(task.get("name") == tn)
+			{
+				taskID = task.get("id");
+				break;
+			}
+		}
+	}
+	values_map = Map();
+	values_map.put("percent_complete","100");
+	response = zoho.projects.update("ebi0rg",projectID,"tasks",taskID,values_map,"project");
+}

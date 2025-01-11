@@ -1,0 +1,37 @@
+void MoveAttachments(list subFormData, string WDparentFolderId)
+{
+	/*
+		we want to move the uploaded attachments into project folder
+	*/
+// check if there is any data in subform
+if(subFormData.size() > 0)
+{
+	//info subFormData;
+	// loop through each instance or item in the subform
+	for each  entry in subFormData
+	{
+		// get the File Uploaded
+		d_Url = entry.getJSON("FileUpload").getJSON("path");
+		file_id = d_Url.getSuffix("/ZF-WD/").subString(0,37);
+		info file_id;
+		// move uploaded file into specific folder
+		header = Map();
+		header.put("Accept","application/vnd.api+json");
+		data = Map();
+		data_param1 = Map();
+		att_param1 = Map();
+		att_param1.put("parent_id",WDparentFolderId);
+		data_param1.put("attributes",att_param1);
+		data_param1.put("type","files");
+		data.put("data",data_param1);
+		response = invokeurl
+		[
+			url :"https://www.zohoapis.com/workdrive/api/v1/files/" + file_id
+			type :PATCH
+			parameters:data.toString()
+			headers:header
+			connection:"workdrive"
+		];
+	}
+}
+}

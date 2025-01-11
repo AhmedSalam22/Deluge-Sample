@@ -1,0 +1,18 @@
+string searchTask(string taskName, string TicketID)
+{
+tiket = zoho.desk.getRecordById(718524343,"tickets",TicketID,"zohodesk");
+project_id = tiket.get("cf").get("cf_project_id");
+m = Map();
+m.put("search_term",taskName);
+m.put("module","tasks");
+search = invokeurl
+[
+	url :"https://projectsapi.zoho.com/restapi/portal/towngroup/projects/" + project_id + "/search"
+	type :GET
+	parameters:m
+	connection:"flowproject"
+];
+//info search;
+taskID = search.get("tasks").get(0).get("id");
+return taskID;
+}

@@ -1,0 +1,82 @@
+string fileName(string WDparentFolderId, string fileName)
+{
+/*
+		return the new file name for the uploaded file for example test.pdf
+		if test not exist then the name will be test V-1.0.pdf
+		if there is a previous file test V-1.0 then will be test V-1.1
+		if there is a previous file test V-2.0 then will be test V-2.1
+	*/
+// get files names
+mp = Map();
+mp.put("Accept","application/vnd.api+json");
+response = invokeurl
+[
+	url :"https://workdrive.zoho.com/api/v1/teamfolders/" + WDparentFolderId + "/files?page%5Boffset%5D=0&page%5Blimit%5D=200&filter%5Btype%5D=all"
+	type :GET
+	headers:mp
+	connection:"workdrive"
+];
+//info response;
+containV = fileName.replaceFirst("_V-"," V-");
+// get file name before version for example we have this file Zoho V-1.0 >> result will be Zoho
+if(containV.contains(" V-"))
+{
+	file_name = containV.getPrefix(" V-");
+}
+else
+{
+	file_name = fileName.getPrefix(".");
+}
+// loop throgh all files in the folder to see the last version
+for each  file in response.get("data")
+{
+	searchFileName = file.get("attributes").get("name").getPrefix(".");
+	if(file.get("attributes").get("name").contains(" V-"))
+	{
+		searchFileName = file.get("attributes").get("name").getPrefix(" V-");
+		info "searchFileName: " + searchFileName;
+		info file.get("attributes").get("name");
+	}
+	if(file.get("attributes").get("name").contains("_V-"))
+	{
+		searchFileName = file.get("attributes").get("name").getPrefix("_V-");
+		info "searchFileName: " + searchFileName;
+		info file.get("attributes").get("name");
+	}
+	if(searchFileName == fileName.getPrefix(".") || searchFileName == fileName.getPrefix("_V-"))
+	{
+		info "file attributes " + file.get("attributes").get("name");
+		// update file version
+		if(file.get("attributes").get("name").contains(" V-"))
+		{
+			major = file.get("attributes").get("name").getPrefix(".").getSuffix("V-");
+			minor = file.get("attributes").get("name").getSuffix(".").getPrefix(".");
+			minor = minor.replaceAll(" Approved","");
+			minor = minor.replaceAll(" Rejected","");
+			if(minor.endsWith("BL"))
+			{
+				major = major.toNumber() + 1;
+				file_name = file_name + " V-" + major + ".0";
+			}
+			else
+			{
+				minor = minor.toNumber() + 1;
+				file_name = file_name + " V-" + major + "." + minor;
+			}
+			info "Version: " + file_name;
+			break;
+		}
+		else
+		{
+			file_name = file_name + " V-1.0";
+			info "v2";
+		}
+	}
+}
+if(file_name.notContains(" V-"))
+{
+	file_name = file_name + " V-1.0";
+}
+info file_name;
+return file_name;
+}

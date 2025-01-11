@@ -1,0 +1,36 @@
+string downloadContract(string contract_url, string Folder, string name)
+{
+contract = invokeurl
+[
+	url :contract_url
+	type :GET
+	connection:"contract"
+];
+info contract;
+filesList = List();
+filesList.add({"paramName":"content","content":contract});
+filesList.add({"paramName":"format","content":"pdf","stringPart":"true"});
+filesList.add({"paramName":"filename","content":"Converted_doc","stringPart":"true"});
+pdf = invokeurl
+[
+	url :"https://zohoapis.com/writer/api/v1/documents/convert"
+	type :POST
+	files:filesList
+	connection:"writer"
+];
+pdf.setParamName("content");
+u_header = Map();
+u_header.put("Content-Type","multipart/form-data");
+u_Url = "https://workdrive.zoho.com/api/v1/upload?parent_id=" + Folder + "&override-name-exist=false&filename=" + "cont" + name + ".pdf";
+info u_Url;
+response = invokeurl
+[
+	url :u_Url
+	type :POST
+	headers:u_header
+	files:pdf
+	connection:"workdrive"
+];
+info response;
+return response.get("data").get(0).get("attributes").get("Permalink");
+}

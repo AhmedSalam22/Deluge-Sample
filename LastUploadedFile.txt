@@ -1,0 +1,65 @@
+void LastUploadedFile(string projectID, string taskName, string file_id)
+{
+	/*
+		update the LastUploadedFile in zoho project for specific task to a link
+	*/
+	
+// we will not apply this function for task Site Applicable 
+notApplicaple = {"Site Applicable"};
+// get portal id
+ck = zoho.projects.getPortals("project");
+portal_id = ck.getJson("portals").getJson("id");
+// get task name without file extention
+if(taskName.contains(".pdf"))
+{
+	tn = taskName.getPrefix(".pdf");
+}
+else
+{
+	tn = taskName;
+}
+// if this task not in notApplicaple list
+if(!taskName in notApplicaple)
+{	// search about this task in zoho project
+	m = Map();
+	m.put("search_term",tn);
+	m.put("module","tasks");
+	t = invokeurl
+	[
+		url :"https://projectsapi.zoho.com/restapi/portal/" + portal_id + "/projects/" + projectID + "/search"
+		type :GET
+		parameters:m
+		connection:"project"
+	];
+	info t;
+	search_result = t.get("tasks");
+	search_count = t.get("tasks_count").toNumber();
+	// if there is a result
+	if(search_count > 0)
+	{
+		// loop through each task in reslut
+		for each  task in search_result
+		{
+			// if task name equal to what we look
+			if(task.get("name") == tn)
+			{
+				// get task id
+				taskID = task.get("id");
+				// update the task field  wich is UDF_CHAR2
+				values_map = Map();
+				if(file_id.length() == 37)
+				{
+					values_map.put("custom_fields",{"UDF_CHAR2":"https://workdrive.zoho.com/file/" + file_id});
+				}
+				else
+				{
+					values_map.put("custom_fields",{"UDF_CHAR2":file_id});
+				}
+				response = zoho.projects.update("ebi0rg",projectID,"tasks",taskID,values_map,"project");
+				info response;
+			}
+			break;
+		}
+	}
+}
+}

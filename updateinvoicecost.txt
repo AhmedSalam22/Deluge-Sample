@@ -1,0 +1,76 @@
+
+project_id = invoice.getJSON("line_items").get(0).getJSON("project_id");
+line_items = invoice.getJSON("line_items");
+amount = 0;
+for each  line_item in line_items
+{
+	qty = line_item.get("quantity");
+	price = line_item.get("rate");
+	amount = amount + qty * price;
+}
+// info amount;
+// info project_id;
+response = invokeurl
+[
+	url :"https://www.zohoapis.com/books/v3/projects/" + project_id
+	type :GET
+	connection:"books"
+];
+// info response;
+projectID = response.get("project").get("zprojects_project_id");
+ck = zoho.projects.getPortals("project");
+portal_id = ck.getJson("portals").getJson("id");
+m = Map();
+m.put("search_term","Invoice");
+m.put("module","tasks");
+t = invokeurl
+[
+	url :"https://projectsapi.zoho.com/restapi/portal/" + portal_id + "/projects/" + projectID + "/search"
+	type :GET
+	parameters:m
+	connection:"project"
+];
+//info t;
+search_result = t.get("tasks");
+search_count = t.get("tasks_count").toNumber();
+if(search_count > 1)
+{
+	for each  task in search_result
+	{
+		if(task.get("name") == "Invoice")
+		{
+			taskID = task.get("id");
+			break;
+		}
+	}
+}
+// taskID = t.get("tasks").get(1).get("id");
+// info taskID;
+// info project_id;
+task = invokeurl
+[
+	url :"https://projectsapi.zoho.com/restapi/portal/" + portal_id + "/projects/" + projectID + "/tasks/" + taskID + "/"
+	type :GET
+	connection:"project"
+];
+// info task;
+total_actual_cost = 0;
+custom_fields = task.getJSON("tasks").get(0).getJSON("custom_fields");
+// info custom_fields;
+if(custom_fields.size() > 0)
+{
+	for each  custom_field in custom_fields
+	{
+		if(custom_field.get("label_name") == "Cost")
+		{
+			//info custom_field.get("value");
+			total_actual_cost = custom_field.get("value").toNumber();
+		}
+	}
+}
+total_actual_cost = total_actual_cost + amount.toNumber();
+//info total_actual_cost;
+values_map = Map();
+values_map.put("custom_fields",{"UDF_DOUBLE1":total_actual_cost});
+response = zoho.projects.update("towngroup",projectID,"tasks",taskID,values_map,"project");
+//info response;

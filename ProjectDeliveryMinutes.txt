@@ -1,0 +1,78 @@
+string ProjectDeliveryMinutes(string project, string customer, string date1, string choice, string date2, string note1, string note2)
+{
+	/*
+		Create contract for محضر استلام ابتدائى
+	*/
+fetchName = customer.lower().replaceAll("-"," ");
+fetchName = fetchName.replaceAll(" ","-");
+// see if this customer already exist in zoho contract or not
+existingCounterpartyResponse = invokeurl
+[
+	url :"https://contracts.zoho.com/api/v1/counterparties/" + fetchName
+	type :GET
+	connection:"zcontract"
+];
+existingCounterparties = existingCounterpartyResponse.getJSON("counterparties");
+info existingCounterpartyResponse;
+// if the contractor doesn't exist
+if(isNull(existingCounterparties))
+{
+	// create a contractor
+	counterpartyType = "customer";
+	newCounterpartyDetail = {"name":customer.toLowerCase(),"counterPartyType":toLowerCase(counterpartyType)};
+	createdCounterpartyResponse = invokeurl
+	[
+		url :"https://contracts.zoho.com/api/v1/counterparties"
+		type :POST
+		parameters:toString(newCounterpartyDetail)
+		connection:"zcontract"
+	];
+	info createdCounterpartyResponse;
+	createdCounterPartyAPIName = createdCounterpartyResponse.get("counterparties").get(0).get("organizationApiName");
+}
+else
+{
+	// get the contractor
+	createdCounterPartyAPIName = existingCounterpartyResponse.get("counterparties").get(0).get("organizationApiName");
+}
+createdContractInfo = Map();
+//-------------------	New Contract Variables	----------------------------//
+newContractType = "teset";
+isNewContractTermIsDefinite = false;
+isNewContractRenewable = false;
+newContractName = project + " Delivery Minutes " + customer;
+project_api = "up83qwkun6o1";
+date1_api = "3oerws6gpi19";
+// date1 = date1.toDate().toString("yyyy-MMMM-dd");
+customer_api = "l6jlrugshkw5";
+date2_api = "s16yw6308zmi";
+date3_api = "1522gby1vfv5";
+note1_api = "5mgjnq0f27jj";
+note2_api = "wzc7zufr42uc";
+if(choice == "لا مانع من التسليم الابتدائى")
+{
+	date2 = " ";
+	date3 = " ";
+}
+else if(choice == "لا مانع من التسليم الابتدائى مع وجود ملاحظات")
+{
+	date2 = date2;
+	date3 = " ";
+}
+else
+{
+	date3 = date2;
+	date2 = " ";
+}
+//------------------- New Contract JSON Input ----------------------------//
+newContractDetail = {"externalSource":true,"inputfields":{{"metaApiName":"contract-type","inputs":{{"inputApiName":"contract-type","inputValue":newContractType}}},{"metaApiName":"contract-term","inputs":{{"inputApiName":"contract-term","inputValue":"false"}}},{"metaApiName":"is-renewable","inputs":{{"inputApiName":"is-renewable","inputValue":isNewContractRenewable}}},{"metaApiName":"title","inputs":{{"inputApiName":"title","inputValue":newContractName}}},{"metaApiName":"contract-effective-date","inputs":{{"inputApiName":"contract-effective-date","inputValue":1}}},{"metaApiName":"party-b-name","inputs":{{"inputApiName":"party-b-name","inputValue":createdCounterPartyAPIName}}},{"metaApiName":project_api,"inputs":{{"inputApiName":project_api,"inputValue":project}}},{"metaApiName":date1_api,"inputs":{{"inputApiName":date1_api,"inputValue":date1}}},{"metaApiName":customer_api,"inputs":{{"inputApiName":customer_api,"inputValue":customer}}},{"metaApiName":date2_api,"inputs":{{"inputApiName":date2_api,"inputValue":date2}}},{"metaApiName":date3_api,"inputs":{{"inputApiName":date3_api,"inputValue":date3}}},{"metaApiName":note1_api,"inputs":{{"inputApiName":note1_api,"inputValue":note1}}},{"metaApiName":note2_api,"inputs":{{"inputApiName":note2_api,"inputValue":note2}}}}};
+createdContractInfo = invokeurl
+[
+	url :"https://contracts.zoho.com/api/v1/createcontract"
+	type :POST
+	parameters:toString(newContractDetail)
+	connection:"zcontract"
+];
+info createdContractInfo;
+return createdContractInfo.get("contracts").get(0).get("downloadUrl");
+}

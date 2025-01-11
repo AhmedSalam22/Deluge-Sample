@@ -1,0 +1,98 @@
+string CreateContract1(string name, string vendor, string address, string project, string contract_start_date, string contract_end_date, string contract_age, string contract_amount, string first, string second, string second_codition, string final, string gurante, string court, string receving, string registration_number, string email, string phone, map scops)
+{
+fetchName = name.lower().replaceAll("-"," ");
+fetchName = fetchName.replaceAll(" ","-");
+existingCounterpartyResponse = invokeurl
+[
+	url :"https://contracts.zoho.com/api/v1/counterparties/" + fetchName
+	type :GET
+	connection:"contract"
+];
+existingCounterparties = existingCounterpartyResponse.getJSON("counterparties");
+info existingCounterpartyResponse;
+if(isNull(existingCounterparties))
+{
+	counterpartyType = "customer";
+	newCounterpartyDetail = {"name":name.toLowerCase(),"counterPartyType":toLowerCase(counterpartyType)};
+	createdCounterpartyResponse = invokeurl
+	[
+		url :"https://contracts.zoho.com/api/v1/counterparties"
+		type :POST
+		parameters:toString(newCounterpartyDetail)
+		connection:"contract"
+	];
+	info createdCounterpartyResponse;
+}
+createdContractInfo = Map();
+//-------------------	New Contract Variables	----------------------------//
+createdCounterPartyAPIName = fetchName;
+newContractType = "عقد-مقاولات-عامة-2";
+isNewContractTermIsDefinite = false;
+isNewContractRenewable = false;
+newContractName = project + " with " + name;
+dayAPI = "7r6wi20asxx2";
+day = zoho.currentdate.toString("EEEE");
+dateAPI = "10ad9q1n4471";
+date = zoho.currentdate;
+vendorAPI = "6f6yhewzvtel";
+vendor = vendor;
+addressAPI = "weakhh3f33vq";
+address = address.replaceAll("\n","");
+projectAPI = "7c5zrlnks2eb";
+project = project;
+contract_age = contract_start_date.toDate().daysBetween(contract_end_date.toDate());
+contract_start_date_API = "5uj5a8imf61q";
+contract_start_date = contract_start_date.toDate().toString("yyyy-MMMM-dd");
+info contract_start_date;
+contract_end_date_API = "esoeynsgv78r";
+contract_end_date = contract_end_date.toDate().toString("yyyy-MMMM-dd");
+info contract_end_date;
+contract_age_API = "1pug1irz720k";
+info contract_age;
+contract_amount_API = "4m0mjh20ng8x";
+contract_amount = contract_amount;
+first_API = "7q1uicsc0hyo";
+first = first;
+second_API = "of099pe2jtoz";
+second = second;
+second_codition_API = "j44qm356zscx";
+second_codition = second_codition;
+final_API = "pci3oay8npam";
+final = final;
+gurante_API = "80oue4qpnxuh";
+gurante = gurante;
+court_API = "vr4ga6o1i9ld";
+court = court;
+receving_API = "7ogwojlsz075";
+receving = receving;
+registration_number_API = "tv0ctviy5np9";
+phone_API = "aal4asheh1tq";
+email_API = "6twceb2af565";
+scope_1_API = "tvslavoxpr1d";
+scope_1 = scops.get("scope_1");
+scope_2_API = "nwlj90drvnqe";
+scope_2 = scops.get("scope_2");
+scope_3_API = "aq3zmev4emlz";
+scope_3 = scops.get("scope_3");
+scope_4_API = "s0wljr2sbrda";
+scope_4 = scops.get("scope_4");
+scope_5_API = "7a0m9h2q18gv";
+scope_5 = scops.get("scope_5");
+scope_6_API = "kh6ucho4lb1c";
+scope_6 = scops.get("scope_6");
+scope_7_API = "kldro55m9l34";
+scope_7 = scops.get("scope_7");
+scope_8_API = "rsfz9uwqmr7v";
+scope_8 = scops.get("scope_8");
+//------------------- New Contract JSON Input ----------------------------//
+newContractDetail = {"externalSource":true,"inputfields":{{"metaApiName":"contract-type","inputs":{{"inputApiName":"contract-type","inputValue":newContractType}}},{"metaApiName":"contract-term","inputs":{{"inputApiName":"contract-term","inputValue":"false"}}},{"metaApiName":"is-renewable","inputs":{{"inputApiName":"is-renewable","inputValue":isNewContractRenewable}}},{"metaApiName":"title","inputs":{{"inputApiName":"title","inputValue":newContractName}}},{"metaApiName":"contract-effective-date","inputs":{{"inputApiName":"contract-effective-date","inputValue":1}}},{"metaApiName":"party-b-name","inputs":{{"inputApiName":"party-b-name","inputValue":createdCounterPartyAPIName}}},{"metaApiName":addressAPI,"inputs":{{"inputApiName":addressAPI,"inputValue":address}}},{"metaApiName":dayAPI,"inputs":{{"inputApiName":dayAPI,"inputValue":day}}},{"metaApiName":dateAPI,"inputs":{{"inputApiName":dateAPI,"inputValue":date}}},{"metaApiName":vendorAPI,"inputs":{{"inputApiName":vendorAPI,"inputValue":vendor}}},{"metaApiName":projectAPI,"inputs":{{"inputApiName":projectAPI,"inputValue":project}}},{"metaApiName":contract_start_date_API,"inputs":{{"inputApiName":contract_start_date_API,"inputValue":contract_start_date}}},{"metaApiName":contract_end_date_API,"inputs":{{"inputApiName":contract_end_date_API,"inputValue":contract_end_date}}},{"metaApiName":contract_age_API,"inputs":{{"inputApiName":contract_age_API,"inputValue":contract_age}}},{"metaApiName":contract_amount_API,"inputs":{{"inputApiName":contract_amount_API,"inputValue":contract_amount}}},{"metaApiName":first_API,"inputs":{{"inputApiName":first_API,"inputValue":first}}},{"metaApiName":second_API,"inputs":{{"inputApiName":second_API,"inputValue":second}}},{"metaApiName":second_codition_API,"inputs":{{"inputApiName":second_codition_API,"inputValue":second_codition}}},{"metaApiName":final_API,"inputs":{{"inputApiName":final_API,"inputValue":final}}},{"metaApiName":gurante_API,"inputs":{{"inputApiName":gurante_API,"inputValue":gurante}}},{"metaApiName":court_API,"inputs":{{"inputApiName":court_API,"inputValue":court}}},{"metaApiName":receving_API,"inputs":{{"inputApiName":receving_API,"inputValue":receving}}},{"metaApiName":registration_number_API,"inputs":{{"inputApiName":registration_number_API,"inputValue":registration_number}}},{"metaApiName":phone_API,"inputs":{{"inputApiName":phone_API,"inputValue":phone}}},{"metaApiName":email_API,"inputs":{{"inputApiName":email_API,"inputValue":email}}},{"metaApiName":scope_1_API,"inputs":{{"inputApiName":scope_1_API,"inputValue":scope_1}}},{"metaApiName":scope_2_API,"inputs":{{"inputApiName":scope_2_API,"inputValue":scope_2}}},{"metaApiName":scope_3_API,"inputs":{{"inputApiName":scope_3_API,"inputValue":scope_3}}},{"metaApiName":scope_4_API,"inputs":{{"inputApiName":scope_4_API,"inputValue":scope_4}}},{"metaApiName":scope_5_API,"inputs":{{"inputApiName":scope_5_API,"inputValue":scope_5}}},{"metaApiName":scope_6_API,"inputs":{{"inputApiName":scope_6_API,"inputValue":scope_6}}},{"metaApiName":scope_7_API,"inputs":{{"inputApiName":scope_7_API,"inputValue":scope_7}}},{"metaApiName":scope_8_API,"inputs":{{"inputApiName":scope_8_API,"inputValue":scope_8}}}}};
+createdContractInfo = invokeurl
+[
+	url :"https://contracts.zoho.com/api/v1/createcontract"
+	type :POST
+	parameters:toString(newContractDetail)
+	connection:"contract"
+];
+info createdContractInfo;
+return createdContractInfo.get("contracts").get(0).get("downloadUrl");
+}

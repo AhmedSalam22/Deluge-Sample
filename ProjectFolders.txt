@@ -1,0 +1,331 @@
+map ProjectFolders(string projectID, string project_name)
+{
+/*
+		create folders for project
+	*/
+output = Map();
+// get project Fields
+response = invokeurl
+[
+	url :"https://projectsapi.zoho.com/restapi/portal/ebi0rg/projects/" + projectID + "/"
+	type :GET
+	connection:"project"
+];
+// get custome fileds
+//info response;
+customFields = response.get("projects").getJSON("custom_fields");
+folderID = "";
+//get Project Folder Location
+for each  customField in customFields
+{
+	if(customField.get("label_name") == "Project Folder")
+	{
+		folderID = customField.get("value");
+	}
+}
+// if there is no Folder create new one
+if(isNull(folderID))
+{
+	// create project Folder
+	header = Map();
+	header.put("Accept","application/vnd.api+json");
+	data = Map();
+	data_param1 = Map();
+	att_param1 = Map();
+	att_param1.put("name",response.get("projects").getJSON("name"));
+	att_param1.put("parent_id","hu3fl26b9b05c99d743c78ff58a688052086e");
+	data_param1.put("attributes",att_param1);
+	data_param1.put("type","files");
+	data.put("data",data_param1);
+	response = invokeurl
+	[
+		url :"https://www.zohoapis.com/workdrive/api/v1/files"
+		type :POST
+		parameters:data.toString()
+		headers:header
+		connection:"workdrive"
+	];
+	//info response;
+	newFolderID = response.get("data").get("id");
+	output.put("newFolderID",newFolderID);
+	// create Technical Office Folder
+	data = Map();
+	data_param1 = Map();
+	att_param1 = Map();
+	att_param1.put("name","Technical Office-" + project_name);
+	att_param1.put("parent_id",newFolderID);
+	data_param1.put("attributes",att_param1);
+	data_param1.put("type","files");
+	data.put("data",data_param1);
+	response = invokeurl
+	[
+		url :"https://www.zohoapis.com/workdrive/api/v1/files"
+		type :POST
+		parameters:data.toString()
+		headers:header
+		connection:"workdrive"
+	];
+	TechnicalOffice = response.get("data").get("id");
+	output.put("TechnicalOffice",TechnicalOffice);
+	header = Map();
+	header.put("Accept","application/vnd.api+json");
+	data = Map();
+	data_param1 = Map();
+	att_param1 = Map();
+	att_param1.put("resource_id",TechnicalOffice);
+	att_param1.put("shared_type","groupmembers");
+	att_param1.put("role_id","34");
+	att_param1.put("share_to","p4hcp131cec865dc148a5a1b72e9eeb859209-7342791000000119007");
+	data_param1.put("attributes",att_param1);
+	data_param1.put("type","permissions");
+	data.put("data",data_param1);
+	response = invokeurl
+	[
+		url :"https://www.zohoapis.com/workdrive/api/v1/permissions"
+		type :POST
+		parameters:data.toString()
+		headers:header
+		connection:"workdrive"
+	];
+	info response;
+	// create Closing Folder
+	data = Map();
+	data_param1 = Map();
+	att_param1 = Map();
+	att_param1.put("name","Closing -" + project_name);
+	att_param1.put("parent_id",newFolderID);
+	data_param1.put("attributes",att_param1);
+	data_param1.put("type","files");
+	data.put("data",data_param1);
+	response = invokeurl
+	[
+		url :"https://www.zohoapis.com/workdrive/api/v1/files"
+		type :POST
+		parameters:data.toString()
+		headers:header
+		connection:"workdrive"
+	];
+	Closing = response.get("data").get("id");
+	output.put("Closing",Closing);
+	// create Implementation Folder
+	data = Map();
+	data_param1 = Map();
+	att_param1 = Map();
+	att_param1.put("name","Implementation -" + project_name);
+	att_param1.put("parent_id",newFolderID);
+	data_param1.put("attributes",att_param1);
+	data_param1.put("type","files");
+	data.put("data",data_param1);
+	response = invokeurl
+	[
+		url :"https://www.zohoapis.com/workdrive/api/v1/files"
+		type :POST
+		parameters:data.toString()
+		headers:header
+		connection:"workdrive"
+	];
+	Implementation = response.get("data").get("id");
+	output.put("Implementation",Implementation);
+	header = Map();
+	header.put("Accept","application/vnd.api+json");
+	data = Map();
+	data_param1 = Map();
+	att_param1 = Map();
+	att_param1.put("resource_id",Implementation);
+	att_param1.put("shared_type","groupmembers");
+	att_param1.put("role_id","34");
+	att_param1.put("share_to","p4hcp131cec865dc148a5a1b72e9eeb859209-7342791000000119005");
+	data_param1.put("attributes",att_param1);
+	data_param1.put("type","permissions");
+	data.put("data",data_param1);
+	response = invokeurl
+	[
+		url :"https://www.zohoapis.com/workdrive/api/v1/permissions"
+		type :POST
+		parameters:data.toString()
+		headers:header
+		connection:"workdrive"
+	];
+	info response;
+	// create Design Folder
+	data = Map();
+	data_param1 = Map();
+	att_param1 = Map();
+	att_param1.put("name","Design -" + project_name);
+	att_param1.put("parent_id",newFolderID);
+	data_param1.put("attributes",att_param1);
+	data_param1.put("type","files");
+	data.put("data",data_param1);
+	response = invokeurl
+	[
+		url :"https://www.zohoapis.com/workdrive/api/v1/files"
+		type :POST
+		parameters:data.toString()
+		headers:header
+		connection:"workdrive"
+	];
+	Design = response.get("data").get("id");
+	output.put("Design",Design);
+	header = Map();
+	header.put("Accept","application/vnd.api+json");
+	data = Map();
+	data_param1 = Map();
+	att_param1 = Map();
+	att_param1.put("resource_id",Design);
+	att_param1.put("shared_type","groupmembers");
+	att_param1.put("role_id","34");
+	att_param1.put("share_to","p4hcp131cec865dc148a5a1b72e9eeb859209-7342791000000119003");
+	data_param1.put("attributes",att_param1);
+	data_param1.put("type","permissions");
+	data.put("data",data_param1);
+	response = invokeurl
+	[
+		url :"https://www.zohoapis.com/workdrive/api/v1/permissions"
+		type :POST
+		parameters:data.toString()
+		headers:header
+		connection:"workdrive"
+	];
+	info response;
+	// create pre design Folder
+	data = Map();
+	data_param1 = Map();
+	att_param1 = Map();
+	att_param1.put("name","Pre Design -" + project_name);
+	att_param1.put("parent_id",Design);
+	data_param1.put("attributes",att_param1);
+	data_param1.put("type","files");
+	data.put("data",data_param1);
+	response = invokeurl
+	[
+		url :"https://www.zohoapis.com/workdrive/api/v1/files"
+		type :POST
+		parameters:data.toString()
+		headers:header
+		connection:"workdrive"
+	];
+	PreDesign = response.get("data").get("id");
+	output.put("PreDesign",PreDesign);
+	// create Full design Folder
+	data = Map();
+	data_param1 = Map();
+	att_param1 = Map();
+	att_param1.put("name","Full Design -" + project_name);
+	att_param1.put("parent_id",Design);
+	data_param1.put("attributes",att_param1);
+	data_param1.put("type","files");
+	data.put("data",data_param1);
+	response = invokeurl
+	[
+		url :"https://www.zohoapis.com/workdrive/api/v1/files"
+		type :POST
+		parameters:data.toString()
+		headers:header
+		connection:"workdrive"
+	];
+	FullDesign = response.get("data").get("id");
+	output.put("FullDesign",FullDesign);
+	// create Site Applicable Folder
+	data = Map();
+	data_param1 = Map();
+	att_param1 = Map();
+	att_param1.put("name","Site Applicable-" + project_name);
+	att_param1.put("parent_id",Design);
+	data_param1.put("attributes",att_param1);
+	data_param1.put("type","files");
+	data.put("data",data_param1);
+	response = invokeurl
+	[
+		url :"https://www.zohoapis.com/workdrive/api/v1/files"
+		type :POST
+		parameters:data.toString()
+		headers:header
+		connection:"workdrive"
+	];
+	SiteApplicable = response.get("data").get("id");
+	output.put("SiteApplicable",SiteApplicable);
+	// create Initiation Folder
+	data = Map();
+	data_param1 = Map();
+	att_param1 = Map();
+	att_param1.put("name","Initiation -" + project_name);
+	att_param1.put("parent_id",newFolderID);
+	data_param1.put("attributes",att_param1);
+	data_param1.put("type","files");
+	data.put("data",data_param1);
+	response = invokeurl
+	[
+		url :"https://www.zohoapis.com/workdrive/api/v1/files"
+		type :POST
+		parameters:data.toString()
+		headers:header
+		connection:"workdrive"
+	];
+	Initiation = response.get("data").get("id");
+	output.put("Initiation",Initiation);
+	header = Map();
+	header.put("Accept","application/vnd.api+json");
+	data = Map();
+	data_param1 = Map();
+	att_param1 = Map();
+	att_param1.put("resource_id",Initiation);
+	att_param1.put("shared_type","groupmembers");
+	att_param1.put("role_id","34");
+	att_param1.put("share_to","p4hcp131cec865dc148a5a1b72e9eeb859209-7342791000000119001");
+	data_param1.put("attributes",att_param1);
+	data_param1.put("type","permissions");
+	data.put("data",data_param1);
+	response = invokeurl
+	[
+		url :"https://www.zohoapis.com/workdrive/api/v1/permissions"
+		type :POST
+		parameters:data.toString()
+		headers:header
+		connection:"workdrive"
+	];
+	info response;
+	// create Control Folder
+	data = Map();
+	data_param1 = Map();
+	att_param1 = Map();
+	att_param1.put("name","Control -" + project_name);
+	att_param1.put("parent_id",newFolderID);
+	data_param1.put("attributes",att_param1);
+	data_param1.put("type","files");
+	data.put("data",data_param1);
+	response = invokeurl
+	[
+		url :"https://www.zohoapis.com/workdrive/api/v1/files"
+		type :POST
+		parameters:data.toString()
+		headers:header
+		connection:"workdrive"
+	];
+	Control = response.get("data").get("id");
+	output.put("Control",Control);
+	// Create Planning Folder
+	data = Map();
+	data_param1 = Map();
+	att_param1 = Map();
+	att_param1.put("name","Planning -" + project_name);
+	att_param1.put("parent_id",newFolderID);
+	data_param1.put("attributes",att_param1);
+	data_param1.put("type","files");
+	data.put("data",data_param1);
+	response = invokeurl
+	[
+		url :"https://www.zohoapis.com/workdrive/api/v1/files"
+		type :POST
+		parameters:data.toString()
+		headers:header
+		connection:"workdrive"
+	];
+	Planning = response.get("data").get("id");
+	output.put("Planning",Planning);
+}
+else
+{
+	output.put("newFolderID",folderID);
+}
+return output;
+}

@@ -1,0 +1,22 @@
+string FolderID(string TicketID, string Folder)
+{
+ticket = zoho.desk.getRecordById(718524343,"tickets",TicketID,"flowdesk");
+projectID = ticket.get("cf").get("cf_project_id");
+response = invokeurl
+[
+	url :"https://projectsapi.zoho.com/restapi/portal/towngroup/projects/" + projectID + "/"
+	type :GET
+	connection:"flowproject"
+];
+customFields = response.get("projects").getJSON("custom_fields");
+for each  customField in customFields
+{
+	//info customField;
+	if(customField.get("label_name") == Folder)
+	{
+		info customField;
+		folderID = customField.get("value");
+	}
+}
+return folderID;
+}

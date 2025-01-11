@@ -1,0 +1,24 @@
+string fetchTask(string projectID, string taskName, string Phase)
+{
+//info projectID;
+ck = zoho.projects.getPortals("flowproject");
+portal_id = ck.getJson("portals").getJson("id");
+m = Map();
+tn = taskName;
+if(!isNull(Phase))
+{
+	tn = taskName + " " + Phase;
+}
+m.put("search_term",tn);
+m.put("module","tasks");
+t = invokeurl
+[
+	url :"https://projectsapi.zoho.com/restapi/portal/" + portal_id + "/projects/" + projectID + "/search"
+	type :GET
+	parameters:m
+	connection:"flowproject"
+];
+info t;
+taskID = t.get("tasks").get(0).get("id");
+return taskID;
+}

@@ -1,0 +1,124 @@
+/* 
+	-when there is a qoute created under a specific project create new quotation for Vendor without price
+	-Close the Quotation task in zoho project
+*/
+
+// get qoutes info
+qoutes = invokeurl
+[
+	url :"https://www.zohoapis.com/books/v3/estimates/" + estimate.get("estimate_id") + "?organization_id=869305346"
+	type :GET
+	connection:"zbooks"
+];
+
+info qoutes;
+// get related project id
+project_id = qoutes.get("estimate").get("project").get("project_id");
+info project_id;
+// get some essentional info
+project_name = qoutes.get("estimate").get("project").get("project_name");
+customer_id = qoutes.get("estimate").get("customer_id");
+date = qoutes.get("estimate").get("date");
+estimate_id = qoutes.get("estimate").get("estimate_id");
+estimate_number = qoutes.get("estimate").get("estimate_number").getSuffix("-");
+line_items = qoutes.get("estimate").get("line_items");
+// create items without price
+items = list();
+for each  line_item in line_items
+{
+	m = Map();
+	m.put("item_id",line_item.get("item_id"));
+	m.put("quantity",line_item.get("quantity"));
+	m.put("rate",0);
+	m.put("project_id",project_id);
+	m.put("project_name",project_name);
+	m.put("description",line_item.get("description"));
+	items.add(m);
+}
+// create new quotation without price
+parameters_data = {"project_id":project_id,"project_name":project_name,"customer_id":customer_id,"date":date,"line_items":items,"estimate_number":"Vendor-" + estimate_number};
+estimate = invokeurl
+[
+	url :"https://www.zohoapis.com/books/v3/estimates?ignore_auto_number_generation=true&organization_id=869305346"
+	type :POST
+	parameters:parameters_data + ""
+	headers:{"Content-Type":"application/json"}
+	connection:"zbooks"
+];
+
+// get zprojects_project_id for project id 
+response = invokeurl
+[
+	url :"https://www.zohoapis.com/books/v3/projects/" + project_id + "?organization_id=869305346"
+	type :GET
+	connection:"zbooks"
+];
+info response;
+projectID = response.get("project").get("zprojects_project_id");
+ck = zoho.projects.getPortals("zproject");
+portal_id = ck.getJson("portals").getJson("id");
+// search for all tasks that contain Quotation  in zoho project
+m = Map();
+m.put("search_term","Quotation");
+m.put("module","tasks");
+t = invokeurl
+[
+	url :"https://projectsapi.zoho.com/restapi/portal/" + portal_id + "/projects/" + projectID + "/search"
+	type :GET
+	parameters:m
+	connection:"zproject"
+];
+search_result = t.get("tasks");
+search_count = t.get("tasks_count").toNumber();
+// if there is a result loop through each reseault 
+if(search_count > 0)
+{
+	for each  task in search_result
+	{
+		if(task.get("name") == "Quotation")
+		{
+			taskID = task.get("id");
+			//info taskID;
+			break;
+		}
+	}
+}
+info taskID;
+// revoke the blueprint for the task
+response = invokeurl
+[
+	url :"https://projects.zoho.com/portal/restapi/portal/" + portal_id + "/projects/" + projectID + "/tasks/" + taskID + "/blueprint/removetaskblueprint?taskId=" + taskID
+	type :POST
+	connection:"zproject"
+];
+// change the quotation task to close
+values_map = Map();
+// values_map.put("custom_status","2385580000000068235");
+values_map.put("percent_complete","100");
+UDF_TEXT1 = "Quotation was Created with Quotation number:QT-" + estimate_number + hextoText("0A") + "Quotation ID: " + estimate_id;
+values_map.put("custom_fields",{"UDF_TEXT1":UDF_TEXT1});
+//UDF_TEXT1
+response = zoho.projects.update("ebi0rg",projectID,"tasks",taskID,values_map,"zproject");
+// aply BluePrint
+// detail = invokeurl
+// [
+// 	url :"https://projects.zoho.com/portal/restapi/portal/" + portal_id + "/tasks/" + taskID + "/taskdetails/"
+// 	type :GET
+// 	connection:"project"
+// ];
+// info detail;
+// TASK_STATUS_ID = detail.get("STATUS_VALUE");
+// info "TASK_STATUS_ID >>" + TASK_STATUS_ID;
+// applyblueprintpremeters = Map();
+// applyblueprintpremeters.put("projectId",projectID);
+// applyblueprintpremeters.put("bluePrintId","2385580000000068229");
+// applyblueprintpremeters.put("considerCriteria","false");
+// applyblueprintpremeters.put("taskId",taskID);
+// applyblueprintpremeters.put("taskBlueprintStatusMappingArray","[{\"TASK_STATUS_ID\":" + TASK_STATUS_ID + ",\"BLUEPRINT_STATUS_ID\":" + TASK_STATUS_ID + "}]");
+// applyBlueprint = invokeurl
+// [
+// 	url :"https://projects.zoho.com/restapi/portal/" + portal_id + "/projects/" + projectID + "/tasks/" + taskID + "/blueprint/applytaskblueprint"
+// 	type :POST
+// 	parameters:applyblueprintpremeters
+// 	connection:"project"
+// ];

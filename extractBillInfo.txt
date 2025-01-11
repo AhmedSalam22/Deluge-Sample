@@ -1,0 +1,24 @@
+map extractBillInfo(string bill_id)
+{
+mp = Map();
+Bill = invokeurl
+[
+	url :"https://www.zohoapis.com/books/v3/bills/" + bill_id
+	type :GET
+	connection:"books"
+];
+mp = Map();
+project = invokeurl
+[
+	url :"https://www.zohoapis.com/books/v3/projects/" + Bill.get("bill").get("line_items").get(0).get("project_id")
+	type :GET
+	connection:"books"
+];
+info Bill;
+mp.put("project_name",Bill.get("bill").get("line_items").get(0).get("project_name"));
+mp.put("project_id",project.getJSON("project").getJSON("zprojects_project_id"));
+mp.put("vendor_id",Bill.get("bill").get("vendor_id"));
+mp.put("total",Bill.get("bill").get("total"));
+mp.put("bill_number",Bill.get("bill").get("bill_number"));
+return mp;
+}

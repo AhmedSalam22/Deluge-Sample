@@ -1,0 +1,53 @@
+void CreateTaskListImplementation(string projectName, string portalID, string projectID, string milestone_id, string Folder, string ticketID, string start_date, map folders)
+{
+/*Create Implementatipon taks in zoho project*/
+projectName = projectName.replaceAll(" ","%20");
+// create task list
+params = {"name":"Forms","flag":"internal","milestone_id":milestone_id};
+taskList = zoho.projects.create(portalID,projectID,"TaskLists",params,"project");
+taskListID = taskList.get("tasklists").get(0).get("id");
+// Weekly Report
+link = "https://forms.zoho.com/EBIiOrg/form/WeeklyReport?F=" + folders.get("WeeklyReport") + "&T=" + ticketID + "&P=" + projectName;
+params = {"duration":8,"duration_type":"days","start_date":start_date,"tasklist_id":taskListID,"name":"Weekly Report","custom_fields":{"UDF_CHAR1":link}};
+task = zoho.projects.create(portalID,projectID,"Tasks",params,"project");
+// Daily work report
+link = "https://forms.zoho.com/EBIiOrg/form/Dailyworkreport?Folder=" + folders.get("Dailyworkreport") + "&ticketID=" + ticketID + "&s=" + projectName;
+params = {"duration":8,"duration_type":"days","start_date":start_date,"tasklist_id":taskListID,"name":"Daily work report","custom_fields":{"UDF_CHAR1":link}};
+task = zoho.projects.create(portalID,projectID,"Tasks",params,"project");
+// Material Request
+link = "https://forms.zoho.com/EBIiOrg/form/MaterialRequistion?F=" + folders.get("MaterialRequest") + "&T=" + ticketID + "&P=" + projectName;
+params = {"duration":8,"duration_type":"days","start_date":start_date,"tasklist_id":taskListID,"name":"Material Request","custom_fields":{"UDF_CHAR1":link}};
+task = zoho.projects.create(portalID,projectID,"Tasks",params,"project");
+// Request for information
+link = "https://forms.zoho.com/EBIiOrg/form/RequestForInformation?Folder=" + folders.get("RequestforInformation") + "&ticketID=" + ticketID + "&p=" + projectName;
+params = {"duration":8,"duration_type":"days","start_date":start_date,"tasklist_id":taskListID,"name":"Request For Information","custom_fields":{"UDF_CHAR1":link}};
+task = zoho.projects.create(portalID,projectID,"Tasks",params,"project");
+// Change request
+link = "https://forms.zoho.com/EBIiOrg/form/AVariationOrder?Folder=" + folders.get("Changerequest") + "&ticketID=" + ticketID + "&p=" + projectName;
+params = {"duration":8,"duration_type":"days","start_date":start_date,"tasklist_id":taskListID,"name":"Change request","custom_fields":{"UDF_CHAR1":link}};
+task = zoho.projects.create(portalID,projectID,"Tasks",params,"project");
+// Inspection request
+link = "https://forms.zoho.com/EBIiOrg/form/InspectionRequest?Folder=" + folders.get("Inspectionrequest") + "&ticketID=" + ticketID + "&p=" + projectName;
+params = {"duration":8,"duration_type":"days","start_date":start_date,"tasklist_id":taskListID,"name":"Inspection request","custom_fields":{"UDF_CHAR1":link}};
+task = zoho.projects.create(portalID,projectID,"Tasks",params,"project");
+//Quantity survey
+link = "https://forms.zoho.com/EBIiOrg/form/OnsiteInquiries?F=" + folders.get("Quantitysurvey") + "&T=" + ticketID + "&P=" + projectName;
+params = {"duration":8,"duration_type":"days","start_date":start_date,"tasklist_id":taskListID,"name":"Quantity Survey","custom_fields":{"UDF_CHAR1":link}};
+task = zoho.projects.create(portalID,projectID,"Tasks",params,"project");
+//Material Inspection Receiving
+link = "https://forms.zoho.com/EBIiOrg/form/MaterialInspectionReceiving?F=" + folders.get("MaterialInspectionReceiving") + "&T=" + ticketID;
+params = {"duration":8,"duration_type":"days","start_date":start_date,"tasklist_id":taskListID,"name":"Material Inspection Receiving","custom_fields":{"UDF_CHAR1":link}};
+task = zoho.projects.create(portalID,projectID,"Tasks",params,"project");
+//Request Petty Cash
+link = "https://forms.zoho.com/EBIiOrg/form/RequestPettyCash?F=" + folders.get("RequestPettyCash") + "&T=" + ticketID + "&P=" + projectName;
+params = {"duration":8,"duration_type":"days","start_date":start_date,"tasklist_id":taskListID,"name":"Request Petty Cash","custom_fields":{"UDF_CHAR1":link}};
+task = zoho.projects.create(portalID,projectID,"Tasks",params,"project");
+//Custody sheet
+link = "https://forms.zoho.com/EBIiOrg/form/Custody?F=" + folders.get("AdujstPettyCash") + "&T=" + ticketID;
+params = {"duration":8,"duration_type":"days","start_date":start_date,"tasklist_id":taskListID,"name":"Adjust Petty Cash","custom_fields":{"UDF_CHAR1":link}};
+task = zoho.projects.create(portalID,projectID,"Tasks",params,"project");
+// Checklist
+link = "https://forms.zoho.com/EBIiOrg/form/ImplementationChecklist?ticketID=" + ticketID;
+params = {"duration":8,"duration_type":"days","start_date":start_date,"tasklist_id":taskListID,"name":"Implementation Checklist","custom_fields":{"UDF_CHAR1":link}};
+task = zoho.projects.create(portalID,projectID,"Tasks",params,"project");
+}

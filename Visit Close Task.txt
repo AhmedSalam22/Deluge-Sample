@@ -1,0 +1,45 @@
+/* 
+	Close the Visit Task in Zoho Project once we click the visit transation
+*/
+
+tiket = zoho.desk.getRecordById(869305456,"tickets",TicketID,"desk");
+// get associated project 
+projectID = tiket.get("cf").get("cf_project_id");
+//get portal id for zoho project;
+ck = zoho.projects.getPortals("project");
+portal_id = ck.getJson("portals").getJson("id");
+
+// searching for Visit Task
+tasks = list("Visit");
+for each  tn in tasks
+{	
+	m = Map();
+	m.put("search_term",tn);
+	m.put("module","tasks");
+	t = invokeurl
+	[
+		url :"https://projectsapi.zoho.com/restapi/portal/" + portal_id + "/projects/" + projectID + "/search"
+		type :GET
+		parameters:m
+		connection:"project"
+	];
+	info t;
+	search_result = t.get("tasks");
+	search_count = t.get("tasks_count").toNumber();
+	// if there is an result for search loop through all results to fined the correct  one as the search may find two result such as Visit 	   // and Visit 2
+	if(search_count >= 1)
+	{
+		for each  task in search_result
+		{
+			if(task.get("name") == tn)
+			{
+				taskID = task.get("id");
+				break;
+			}
+		}
+	}
+	// close the task
+	values_map = Map();
+	values_map.put("percent_complete","100");
+	response = zoho.projects.update("ebi0rg",projectID,"tasks",taskID,values_map,"project");
+}

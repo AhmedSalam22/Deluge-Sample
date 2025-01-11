@@ -1,0 +1,47 @@
+void closeTask(string TicketID, string taskName, string Phase)
+{
+	/* Close specific task in zoho project */
+	
+// get project id from ticket
+tiket = zoho.desk.getRecordById(869305456,"tickets",TicketID,"zohodesk");
+projectID = tiket.get("cf").get("cf_project_id");
+//get portal id
+ck = zoho.projects.getPortals("project");
+portal_id = ck.getJson("portals").getJson("id");
+
+// search for a task in zoho project
+tn = taskName;
+m = Map();
+m.put("search_term",tn);
+m.put("module","tasks");
+t = invokeurl
+[
+	url :"https://projectsapi.zoho.com/restapi/portal/" + portal_id + "/projects/" + projectID + "/search"
+	type :GET
+	parameters:m
+	connection:"project"
+];
+info t;
+search_result = t.get("tasks");
+search_count = t.get("tasks_count").toNumber();
+// if there is a result
+if(search_count >= 1)
+{
+	// loop through each result 
+	for each  task in search_result
+	{
+		// if the task name equal to the task in result
+		if(task.get("name") == tn)
+		{
+			taskID = task.get("id");
+			// close this task
+			values_map = Map();
+			values_map.put("percent_complete","100");
+			response = zoho.projects.update("ebi0rg",projectID,"tasks",taskID,values_map,"project");
+			info response;
+			break;
+		}
+	}
+}
+
+}

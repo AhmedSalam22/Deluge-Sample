@@ -1,0 +1,21 @@
+string CreateTicket(string TicketID, string projectFolder, string projectID, string projectName, string projectDescription)
+{
+	/*
+		 Create Ticket in zoho desk after we created a project
+	*/
+// if there is no Ticket exist
+if(isNull(TicketID))
+{
+	recordValue = {"subject":projectName,"description":projectDescription,"departmentId":"1048655000000006907","contactId":"1048655000000334001","cf":{"cf_project_id":projectID,"cf_url_project_folder":projectFolder}};
+	response = zoho.desk.create(869305456,"tickets",recordValue,"zohodesk");
+	info response;
+	return response.get("id");
+}
+else
+{
+	// update project forder URL in Zoho Desk 
+	update = zoho.desk.update(869305456,"tickets",TicketID,{"cf":{"cf_url_project_folder":projectFolder}},"zohodesk");
+	info update;
+}
+return TicketID;
+}

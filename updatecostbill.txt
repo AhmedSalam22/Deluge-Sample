@@ -1,0 +1,69 @@
+/* 
+	update purchase order cost when there is new bill created
+*/
+project_id = bill.getJSON("line_items").get(0).getJSON("project_id");
+line_items = bill.getJSON("line_items");
+// calculate the total
+amount = 0;
+for each  line_item in line_items
+{
+	qty = line_item.get("quantity");
+	price = line_item.get("rate");
+	amount = amount + qty * price;
+}
+// info amount;
+// info project_id;
+// get project id for zoho project
+response = invokeurl
+[
+	url :"https://www.zohoapis.com/books/v3/projects/" + project_id + "?organization_id=869305346"
+	type :GET
+	connection:"zbooks"
+];
+// info response;
+projectID = response.get("project").get("zprojects_project_id");
+ck = zoho.projects.getPortals("zproject");
+portal_id = ck.getJson("portals").getJson("id");
+//Search for Purchase Order
+m = Map();
+m.put("search_term","Purchase Order");
+m.put("module","tasks");
+t = invokeurl
+[
+	url :"https://projectsapi.zoho.com/restapi/portal/" + portal_id + "/projects/" + projectID + "/search"
+	type :GET
+	parameters:m
+	connection:"zproject"
+];
+//info t;
+taskID = t.get("tasks").get(0).get("id");
+// info taskID;
+// info project_id;
+task = invokeurl
+[
+	url :"https://projectsapi.zoho.com/restapi/portal/" + portal_id + "/projects/" + projectID + "/tasks/" + taskID + "/"
+	type :GET
+	connection:"zproject"
+];
+// info task;
+// search about cost on zoho project task
+total_actual_cost = 0;
+custom_fields = task.getJSON("tasks").get(0).getJSON("custom_fields");
+// info custom_fields;
+if(custom_fields.size() > 0)
+{
+	for each  custom_field in custom_fields
+	{
+		if(custom_field.get("label_name") == "Cost")
+		{
+			//info custom_field.get("value");
+			total_actual_cost = custom_field.get("value").toNumber();
+		}
+	}
+}
+// update cost for task
+total_actual_cost = total_actual_cost + amount.toNumber();
+info total_actual_cost;
+values_map = Map();
+values_map.put("custom_fields",{"UDF_DOUBLE1":total_actual_cost});
+response = zoho.projects.update("ebi0rg",projectID,"tasks",taskID,values_map,"zproject");

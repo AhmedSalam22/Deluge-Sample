@@ -1,0 +1,27 @@
+//deleted
+
+orgID = 718524343;
+ticket = zoho.desk.getRecordById(orgID,"tickets",TicketID,"adminconnection");
+if(ticket.get("channel") == "Integration")
+{
+	// if there is no project created
+	if(isNull(ticket.get("cf").get("cf_project_id")))
+	{
+		new_project = Map();
+		new_project.put("name",ticket.get("subject"));
+		new_project.put("UDF_CHAR5",ticket.get("id"));
+		new_project.put("public","yes");
+		new_project.put("description",ticket.get("description"));
+		new_project.put("template_id",1822103000002807441);
+		// if (!isNull(ticket.get("cf").get("cf_project_end_date"))) 
+		// {
+		// 	new_project.put("start_date", zoho.currenttime.tostring("MM-dd-yyyy"));
+		// 	new_project.put("end_date", ticket.get("cf").get("cf_project_end_date").tostring("MM-dd-yyyy"));
+		// }
+		project = zoho.projects.createProject("towngroup",new_project,"deskproject");
+		//info project;
+		recoredValue = {"cf":{"cf_project_id":project.get("projects").get(0).get("id")}};
+		update = zoho.desk.update(orgID,"tickets",TicketID,recoredValue,"adminconnection");
+		//info project.get("projects").get(0).get("id");
+	}
+}

@@ -1,0 +1,88 @@
+void DesignChecklist(list subFormData, string Folder)
+{
+	/*
+	 change the file version of the file to next to the new version if it's get approved
+	 
+	 file version -V 1.5 To file version -V 2.0
+	*/
+// check if the subform has data
+if(subFormData.size() > 0)
+{
+	// loop through each input
+	for each  entry in subFormData
+	{
+		fileName = entry.get("Dropdown");
+		// if it's approved file
+		if(entry.get("DecisionBox") == "true")
+		{
+			mp = Map();
+			mp.put("Accept","application/vnd.api+json");
+			response = invokeurl
+			[
+				url :"https://workdrive.zoho.com/api/v1/teamfolders/" + Folder + "/files?page%5Boffset%5D=0&page%5Blimit%5D=200&filter%5Btype%5D=all"
+				type :GET
+				headers:mp
+				connection:"workdrive"
+			];
+			//info response;
+			containV = entry.get("Dropdown");
+			name = entry.get("Dropdown");
+			file_name = entry.get("Dropdown");
+			// get file name before version for example we have this file Zoho V-1.0 >> result will be Zoho
+			// loop throgh all files in the folder to see the last version
+			for each  file in response.get("data")
+			{
+				info file;
+				searchFileName = file.get("attributes").get("name").getPrefix(".");
+				if(file.get("attributes").get("name").contains(" V-"))
+				{
+					searchFileName = file.get("attributes").get("name").getPrefix(" V-");
+					info "searchFileName: " + searchFileName;
+					info file.get("attributes").get("name");
+				}
+				if(file.get("attributes").get("name").contains("_V-"))
+				{
+					searchFileName = file.get("attributes").get("name").getPrefix("_V-");
+					info "searchFileName: " + searchFileName;
+					info file.get("attributes").get("name");
+				}
+				if(searchFileName = name)
+				{
+					header = Map();
+					header.put("Accept","application/vnd.api+json");
+					response = invokeurl
+					[
+						url :"https://www.zohoapis.com/workdrive/api/v1/files/" + file.get("id")
+						type :get
+						headers:header
+						connection:"workdrive"
+					];
+					extn = response.get("data").get("attributes").get("extn");
+					fileName = response.get("data").get("attributes").get("name").getPrefix("." + extn);
+					header = Map();
+					header.put("Accept","application/vnd.api+json");
+					data = Map();
+					data_param1 = Map();
+					att_param1 = Map();
+					major = fileName.getPrefix(".").getSuffix("V-");
+					major = major.toNumber() + 1;
+					file_name = file_name + " V-" + major + ".0";
+					att_param1.put("name",file_name + "." + extn);
+					data_param1.put("attributes",att_param1);
+					data_param1.put("type","files");
+					data.put("data",data_param1);
+					response = invokeurl
+					[
+						url :"https://www.zohoapis.com/workdrive/api/v1/files/" + file.get("id")
+						type :PATCH
+						parameters:data.toString()
+						headers:header
+						connection:"workdrive"
+					];
+					break;
+				}
+			}
+		}
+	}
+}
+}

@@ -1,0 +1,39 @@
+void applyBluePrint(string taskID, string TicketID)
+{
+	/*
+	 apply blueprint for task in zoho project
+	*/
+
+	// get potal id for zoho project
+	ck = zoho.projects.getPortals("project");
+	portal_id = ck.getJson("portals").getJson("id");
+	// get project id related to this Tiket
+	tiket = zoho.desk.getRecordById(869305456,"tickets",TicketID,"zohodesk");
+	project_id = tiket.get("cf").get("cf_project_id");
+	// get task detail for zoho project
+	detail = invokeurl
+	[
+		url :"https://projects.zoho.com/portal/restapi/portal/" + portal_id + "/tasks/" + taskID + "/taskdetails/"
+		type :GET
+		connection:"project"
+	];
+	info detail;
+	TASK_STATUS_ID = detail.get("STATUS_VALUE");
+	info "TASK_STATUS_ID >>" + TASK_STATUS_ID;
+	// apply blueprint
+	applyblueprintpremeters = Map();
+	applyblueprintpremeters.put("projectId",project_id);
+	applyblueprintpremeters.put("bluePrintId","2385580000000068229");
+	applyblueprintpremeters.put("considerCriteria","false");
+	applyblueprintpremeters.put("taskId",taskID);
+	applyblueprintpremeters.put("taskBlueprintStatusMappingArray","[{\"TASK_STATUS_ID\":" + TASK_STATUS_ID + ",\"BLUEPRINT_STATUS_ID\":" + TASK_STATUS_ID + "}]");
+	applyBlueprint = invokeurl
+	[
+		url :"https://projects.zoho.com/restapi/portal/" + portal_id + "/projects/" + project_id + "/tasks/" + taskID + "/blueprint/applytaskblueprint"
+		type :POST
+		parameters:applyblueprintpremeters
+		connection:"project"
+	];
+	info applyblueprintpremeters;
+	info applyBlueprint;
+}

@@ -1,0 +1,26 @@
+void CreateTaskListTechnicalOffice(string projectName, string portalID, string projectID, string milestone_id, string Folder, string ticketID, string start_date)
+{
+projectName = projectName.replaceAll(" ","%20");
+
+// site visit report
+params = {"name":"Site Visit Report","flag":"internal","milestone_id":milestone_id};
+taskList = zoho.projects.create(portalID,projectID,"TaskLists",params,"project");
+taskListID = taskList.get("tasklists").get(0).get("id");
+link = "https://forms.zoho.com/EBIiOrg/form/SiteVisitReport?F=" + Folder + "&T=" + ticketID + "&P=" + projectName;
+params = {"duration":8,"duration_type":"days","start_date":start_date,"tasklist_id":taskListID,"name":"Site Visit Report","custom_fields":{"UDF_CHAR1":link}};
+task = zoho.projects.create(portalID,projectID,"Tasks",params,"project");
+// BOQ task list
+params = {"name":"BOQ","flag":"internal","milestone_id":milestone_id};
+taskList = zoho.projects.create(portalID,projectID,"TaskLists",params,"project");
+taskListID = taskList.get("tasklists").get(0).get("id");
+//Quotation Task
+params = {"duration":8,"duration_type":"days","start_date":start_date,"tasklist_id":taskListID,"name":"Quotation"};
+task = zoho.projects.create(portalID,projectID,"Tasks",params,"project");
+// Purchase order task
+params = {"duration":8,"duration_type":"days","start_date":start_date,"tasklist_id":taskListID,"name":"Purchase Order"};
+task = zoho.projects.create(portalID,projectID,"Tasks",params,"project");
+//Invoice Task
+params = {"duration":8,"duration_type":"days","start_date":start_date,"tasklist_id":taskListID,"name":"Invoice"};
+task = zoho.projects.create(portalID,projectID,"Tasks",params,"project");
+
+}

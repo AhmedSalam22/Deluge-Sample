@@ -1,0 +1,7 @@
+map GetFileInfoFromName(string name)
+{
+mp = Map();
+mp.put("location",name.getPrefix(" "));
+mp.put("name",name.getSuffix(" "));
+return mp;
+}

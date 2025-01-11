@@ -1,0 +1,16 @@
+void revokeTaskBluePrint(string TicketID, string taskID)
+{
+/*
+		revoke task blueprint for a specif task
+	*/
+ck = zoho.projects.getPortals("project");
+portal_id = ck.getJson("portals").getJson("id");
+tiket = zoho.desk.getRecordById(869305456,"tickets",TicketID,"zohodesk");
+project_id = tiket.get("cf").get("cf_project_id");
+response = invokeurl
+[
+	url :"https://projects.zoho.com/portal/restapi/portal/" + portal_id + "/projects/" + project_id + "/tasks/" + taskID + "/blueprint/removetaskblueprint?taskId=" + taskID
+	type :POST
+	connection:"project"
+];
+}

@@ -1,0 +1,143 @@
+/* 
+	create purchase order for each vendor exist in the purchase order
+*/
+
+// get purchase order details
+purchaseorder_id = purchaseorder.get("purchaseorder_id");
+response = invokeurl
+[
+	url :"https://www.zohoapis.com/books/v3/purchaseorders/" + purchaseorder.get("purchaseorder_id") + "?organization_id=869305346"
+	type :GET
+	connection:"zbooks"
+];
+project_id = response.get("purchaseorder").get("line_items").get(0).get("project_id");
+project_name = response.get("purchaseorder").get("line_items").get(0).get("project_name");
+
+
+vendors = Map();
+vendorsID = Map();
+// loop through each item to find the related vendor which we will purchase from
+for each  line_item in purchaseorder.get("line_items")
+{
+	//access the custome fields to get the vendor name
+	// if there is no vendors
+	if(line_item.getJSON("item_custom_fields").size() == 0)
+	{
+		// put the default vendor as the vendor that we will purchase from 
+		vendor = purchaseorder.get("vendor_name");
+		vendorsID.put(vendor,purchaseorder.get("vendor_id"));
+		// get line item details and put in a map
+		m = Map();
+		m.put("item_id",line_item.getJSON("item_id"));
+		m.put("rate",line_item.getJSON("rate"));
+		m.put("quantity",line_item.getJSON("quantity"));
+		m.put("description",line_item.getJSON("description"));
+		m.put("project_id",project_id);
+		m.put("project_name",project_name);
+		
+		l = list();
+		
+		// put date for vendor_id custome field
+		v = Map();
+		v.put("value",purchaseorder.get("vendor_id"));
+		// 		v.put("index", 1);
+		v.put("api_name","cf_vendor");
+		l.add(v);
+		m.put("item_custom_fields",l);
+		// if this vendor already exist in map
+		if(vendors.containKey(vendor))
+		{
+			// get vendor line_items
+			items = vendors.get(vendor);
+			// add new line item to this vendor
+			items.add(m);
+		}
+		else
+		{
+			// this is a new vendor doesn't exist in the map 
+			l = list();
+			l.add(m);
+			// add this vendor to vendors with related items to vendors
+			vendors.put(vendor,l);
+		}
+	}
+	// loop through each item_custom_fields to get vendor per item
+	for each  item_custom_field in line_item.getJSON("item_custom_fields")
+	{
+		// if there is a vendor
+		if(item_custom_field.getJSON("label") == "vendor")
+		{
+			// get vendor and items details and associated it to this vendor
+			vendor = item_custom_field.getJSON("value_formatted");
+			vendorsID.put(vendor,item_custom_field.getJSON("value"));
+			m = Map();
+			m.put("item_id",line_item.getJSON("item_id"));
+			//m.put("name", line_item.getJSON("name"));
+			m.put("rate",line_item.getJSON("rate"));
+			m.put("description",line_item.getJSON("description"));
+			m.put("quantity",line_item.getJSON("quantity"));
+			m.put("project_id",project_id);
+			m.put("project_name",project_name);
+			l = list();
+			v = Map();
+			v.put("value",item_custom_field.getJSON("value"));
+			// 			v.put("index", 1);
+			v.put("api_name","cf_vendor");
+			l.add(v);
+			m.put("item_custom_fields",l);
+			if(vendors.containKey(vendor))
+			{
+				// 				info "contatin";
+				// 				info vendor;
+				items = vendors.get(vendor);
+				items.add(m);
+			}
+			else
+			{
+				l = list();
+				l.add(m);
+				vendors.put(vendor,l);
+				// 				info "not contatin";
+				// 				info vendor;
+			}
+		}
+	}
+}
+// loop through each vendor to create purchase order for him
+for each  vendor in vendors.keys()
+{
+	// create purchase order for each vendor
+	date = zoho.currentdate.toString("yyyy-MM-dd");
+	vendor_id = vendorsID.get(vendor);
+	items = vendors.get(vendor);
+	parameters_data = {"vendor_id":vendor_id,"date":date,"line_items":items};
+	purchaseorder = invokeurl
+	[
+		url :"https://www.zohoapis.com/books/v3/purchaseorders?organization_id=869305346"
+		type :POST
+		parameters:parameters_data + ""
+		headers:{"Content-Type":"application/json"}
+		connection:"zbooks"
+	];
+	// change the status of purchase order to pending approval
+	response = invokeurl
+	[
+		url :"https://www.zohoapis.com/books/v3/purchaseorders/" + purchaseorder.get("purchaseorder").get("purchaseorder_id") + "/submit?organization_id=869305346"
+		type :POST
+		connection:"zbooks"
+	];
+	info purchaseorder;
+}
+// cancel the original purchase order after we created new purchase order for each item
+response = invokeurl
+[
+	url :"https://www.zohoapis.com/books/v3/purchaseorders/" + purchaseorder_id + "/status/cancelled?organization_id=869305346"
+	type :POST
+	connection:"zbooks"
+];
+info response;
+resultMap = Map();
+resultMap.put("message","Done");
+resultMap.put("code",0);
+// 0 - Success ; Other than 0 will consider as failure
+return resultMap;

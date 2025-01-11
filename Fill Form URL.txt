@@ -1,0 +1,82 @@
+/* 
+	Fill the URL for the Fowllowing:
+		URL-Project Folder
+		URL-Site Survey
+		URL-Upload Docs
+		URL-Baseline
+		URL-Checklist
+	
+	trigger: When ticket is Created
+	connection: project, desk
+*/
+
+
+orgID = 869305456;
+ticket = zoho.desk.getRecordById(orgID,"tickets",TicketID,"desk");
+form = "";
+baseline = "";
+checklist = "";
+siteApplicable = "";
+SiteApplicableFolder = "";
+status = "";
+if(ticket.get("status") == "PreDesign")
+{
+	// Design upload DocDs
+	form = "https://forms.zoho.com/EBIiOrg/form/DesignUploadDocuments?";
+	siteApplicable = "https://forms.zoho.com/EBIiOrg/form/SiteApplicable?projectName=" + ticket.get("subject") + "&phase=Pre Design";
+	// Approve Design 
+	baseline = "https://forms.zoho.com/EBIiOrg/form/ApprovalChecklist?";
+	status = "Pre Design";
+}
+if(ticket.get("status") == "Full Design")
+{
+	form = "https://forms.zoho.com/EBIiOrg/form/DesignUploadDocuments?";
+	// 	siteApplicable = "https://forms.zoho.com/EBIiOrg/form/SiteApplicable?projectName=" + ticket.get("subject") + "&phase=Full Design";
+	// Approve Design 
+	baseline = "https://forms.zoho.com/EBIiOrg/form/ApprovalChecklist?";
+	checklist = "https://forms.zoho.com/EBIiOrg/form/DesignChecklist?phase=Full Design";
+	status = "Full Design";
+}
+// find where to upload the file
+projectID = ticket.get("cf").get("cf_project_id");
+response = invokeurl
+[
+	url :"https://projectsapi.zoho.com/restapi/portal/ebi0rg/projects/" + projectID + "/"
+	type :GET
+	connection:"project"
+];
+customFields = response.get("projects").getJSON("custom_fields");
+for each  customField in customFields
+{
+	if(customField.keys().get(0) == status)
+	{
+		folderID = customField.get(status);
+	}
+	//Site Applicable
+	if(customField.keys().get(0) == "Site Applicable")
+	{
+		SiteApplicableFolder = customField.get("Site Applicable");
+	}
+}
+if(!isNull(form))
+{
+	link = form + "Folder=" + folderID + "&ticketID=" + TicketID + "&workdrive=https://workdrive.zoho.com/folder/" + folderID;
+	update = zoho.desk.update(orgID,"tickets",TicketID,{"cf":{"cf_url_upload_docs":link}},"desk");
+	info update;
+}
+if(!isNull(baseline))
+{
+	baseline = baseline + "Folder=" + folderID + "&ticketID=" + TicketID + "&workdrive=https://workdrive.zoho.com/folder/" + folderID;
+	update = zoho.desk.update(orgID,"tickets",TicketID,{"cf":{"cf_url_baseline":baseline}},"desk");
+}
+if(!isNull(checklist))
+{
+	checklist = checklist + "&Folder=" + folderID + "&ticketID=" + TicketID + "&workdrive=https://workdrive.zoho.com/folder/" + folderID;
+	update = zoho.desk.update(orgID,"tickets",TicketID,{"cf":{"cf_url_checklist":checklist}},"desk");
+}
+if(!isNull(siteApplicable))
+{
+	siteApplicable = siteApplicable + "&Folder=" + SiteApplicableFolder + "&ticketID=" + TicketID + "&workdrive=https://workdrive.zoho.com/folder/" + folderID;
+	update = zoho.desk.update(orgID,"tickets",TicketID,{"cf":{"cf_url_site_applicable":siteApplicable}},"desk");
+	//info update;
+}

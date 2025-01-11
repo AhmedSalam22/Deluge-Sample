@@ -1,0 +1,59 @@
+/* 
+	close invoice task on zoho project when there is new invoice created under project
+*/
+
+// get project id in Zoho Books (this is different than project id on zoho desk)
+project_id = invoice.getJSON("line_items").get(0).getJSON("project_id");
+response = invokeurl
+[
+	url :"https://www.zohoapis.com/books/v3/projects/" + project_id
+	type :GET
+	connection:"books"
+];
+// get project id in zoho project
+projectID = response.get("project").get("zprojects_project_id");
+// get portal id for zoho project
+ck = zoho.projects.getPortals("zproject");
+portal_id = ck.getJson("portals").getJson("id");
+//Search for Client Invoice and Invoice tasks in zoho project
+tasks = list("Client Invoice,Invoice");
+for each  task_name in tasks
+{
+	m = Map();
+	m.put("search_term",task_name);
+	m.put("module","tasks");
+	t = invokeurl
+	[
+		url :"https://projectsapi.zoho.com/restapi/portal/" + portal_id + "/projects/" + projectID + "/search"
+		type :GET
+		parameters:m
+		connection:"zproject"
+	];
+	//info t;
+	search_result = t.get("tasks");
+	search_count = t.get("tasks_count").toNumber();
+	//if there found result loop through each resault
+	if(search_count > 0)
+	{
+		for each  task in search_result
+		{
+			if(task.get("name") == task_name)
+			{
+				taskID = task.get("id");
+				info taskID;
+				// revoke blueprint for the task
+				response = invokeurl
+				[
+					url :"https://projects.zoho.com/portal/restapi/portal/" + portal_id + "/projects/" + projectID + "/tasks/" + taskID + "/blueprint/removetaskblueprint?taskId=" + taskID
+					type :POST
+					connection:"zproject"
+				];
+				//close the task in zoho project
+				values_map = Map();
+				values_map.put("percent_complete","100");
+				response = zoho.projects.update(portal_id,projectID,"tasks",taskID,values_map,"zproject");
+				//info response;
+			}
+		}
+	}
+}

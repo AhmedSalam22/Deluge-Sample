@@ -1,0 +1,13 @@
+void pendingApproval(string TicketID, string taskID)
+{
+	/*
+		change the status of the task into pending approval
+	*/ 
+tiket = zoho.desk.getRecordById(869305456,"tickets",TicketID,"zohodesk");
+project_id = tiket.get("cf").get("cf_project_id");
+ck = zoho.projects.getPortals("project");
+portal_id = ck.getJson("portals").getJson("id");
+values_map = Map();
+values_map.put("custom_status","2385580000000068235");
+response = zoho.projects.update("ebi0rg",project_id,"tasks",taskID,values_map,"project");
+}

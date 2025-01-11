@@ -1,0 +1,125 @@
+/* 
+	Create Sales order and Purchase Order when there is an quoation created under project
+*/
+status = estimate.getJSON("status");
+info status;
+quotation_id = estimate.getJSON("estimate_id");
+// this function works only when the quotation name start with QT as there as Vendor Qoutation 
+if(estimate.getJSON("estimate_number").startsWith("QT"))
+{
+	Quotation = invokeurl
+	[
+		url :"https://www.zohoapis.com/books/v3/estimates/" + quotation_id + "?organization_id=869305346"
+		type :GET
+		connection:"zbooks"
+	];
+	//info Quotation;
+	project_id = Quotation.get("estimate").get("project").get("project_id");
+	//info project_id;
+	project_name = Quotation.get("estimate").get("project").get("project_name");
+	customer_id = Quotation.get("estimate").get("customer_id");
+	contact_persons = Quotation.get("estimate").get("contact_persons");
+	line_items = Quotation.get("estimate").get("line_items");
+	items = list();
+	for each  item in line_items
+	{
+		m = Map();
+		m.put("item_id",item.get("item_id"));
+		m.put("name",item.get("name"));
+		m.put("item_order",item.get("item_order"));
+		m.put("rate",item.get("rate"));
+		m.put("quantity",item.get("quantity"));
+		m.put("project_id",project_id);
+		m.put("project_name",project_name);
+		m.put("header_name",item.get("header_name"));
+		m.put("description",item.get("description"));
+		items.add(m);
+	}
+	// create Sales order
+	current_date = zoho.currentdate.toString("yyyy-MM-dd");
+	parameters_data = {"project_id":project_id,"project_name":project_name,"customer_id":customer_id,"date":current_date,"contact_persons":contact_persons,"line_items":items};
+	salesorder = invokeurl
+	[
+		url :"https://www.zohoapis.com/books/v3/salesorders?organization_id=869305346"
+		type :POST
+		parameters:parameters_data + ""
+		headers:{"Content-Type":"application/json"}
+		connection:"zbooks"
+	];
+	info salesorder;
+	// change status to sales order to pending approval
+	response = invokeurl
+	[
+		url :"https://www.zohoapis.com/books/v3/salesorders/" + salesorder.get("salesorder").get("salesorder_id") + "/submit?organization_id=869305346"
+		type :POST
+		connection:"zbooks"
+	];
+	// create purchase order
+	parameters_data = {"project_id":project_id,"project_name":project_name,"vendor_id":5681048000000102084,"date":current_date,"contact_persons":contact_persons,"line_items":items};
+	purchaseOrder = invokeurl
+	[
+		url :"https://www.zohoapis.com/books/v3/purchaseorders?organization_id=869305346"
+		type :POST
+		parameters:parameters_data + ""
+		headers:{"Content-Type":"application/json"}
+		connection:"zbooks"
+	];
+	// change the status of purchase order into pending approval
+	response = invokeurl
+	[
+		url :"https://www.zohoapis.com/books/v3/purchaseorders/" + purchaseOrder.get("purchaseorder").get("purchaseorder_id") + "/submit?organization_id=869305346"
+		type :POST
+		connection:"zbooks"
+	];
+	//info response;
+	//info purchaseOrder;
+	// get related project 
+	response = invokeurl
+	[
+		url :"https://www.zohoapis.com/books/v3/projects/" + project_id + "?organization_id=869305346"
+		type :GET
+		connection:"zbooks"
+	];
+	info response;
+	projectID = response.get("project").get("zprojects_project_id");
+	ck = zoho.projects.getPortals("zproject");
+	portal_id = ck.getJson("portals").getJson("id");
+	// search for Quotation task
+	m = Map();
+	m.put("search_term","Quotation");
+	m.put("module","tasks");
+	t = invokeurl
+	[
+		url :"https://projectsapi.zoho.com/restapi/portal/" + portal_id + "/projects/" + projectID + "/search"
+		type :GET
+		parameters:m
+		connection:"zproject"
+	];
+	info t;
+	search_result = t.get("tasks");
+	search_count = t.get("tasks_count").toNumber();
+	// if found a result in search
+	if(search_count > 0)
+	{
+		for each  task in search_result
+		{
+			if(task.get("name") == "Quotation")
+			{
+				taskID = task.get("id");
+				//info taskID;
+				break;
+			}
+		}
+	}
+	//info taskID;
+	// revoke the blueprint for task to be able change the status
+	response = invokeurl
+	[
+		url :"https://projects.zoho.com/portal/restapi/portal/" + portal_id + "/projects/" + projectID + "/tasks/" + taskID + "/blueprint/removetaskblueprint?taskId=" + taskID
+		type :POST
+		connection:"zproject"
+	];
+	values_map = Map();
+	values_map.put("percent_complete","100");
+	response = zoho.projects.update("ebi0rg",projectID,"tasks",taskID,values_map,"zproject");
+}

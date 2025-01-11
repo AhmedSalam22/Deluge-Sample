@@ -1,0 +1,85 @@
+void PendingApprovalMany(string TicketID, list tasks)
+{
+	/*
+		change task status into pening approval in zoho project
+	*/
+	
+// get project id
+tiket = zoho.desk.getRecordById(869305456,"tickets",TicketID,"zohodesk");
+projectID = tiket.get("cf").get("cf_project_id");
+// get portal id
+ck = zoho.projects.getPortals("project");
+portal_id = ck.getJson("portals").getJson("id");
+
+// loop through each task in tasks
+for each  task_name in tasks
+{
+	// search the task in zoho project
+	m = Map();
+	m.put("search_term",task_name);
+	m.put("module","tasks");
+	t = invokeurl
+	[
+		url :"https://projectsapi.zoho.com/restapi/portal/" + portal_id + "/projects/" + projectID + "/search"
+		type :GET
+		parameters:m
+		connection:"project"
+	];
+	//info t;
+	search_result = t.get("tasks");
+	search_count = t.get("tasks_count").toNumber();
+	// if there found task
+	if(search_count > 0)
+	{
+		//loop through each result
+		for each  task in search_result
+		{
+			//info task;
+			info task.get("name");
+			info task_name;
+			// if we fond the task
+			if(task.get("name") == task_name)
+			{
+				taskID = task.get("id");
+				info taskID;
+				// revoke task blueprint
+				response = invokeurl
+				[
+					url :"https://projects.zoho.com/portal/restapi/portal/" + portal_id + "/projects/" + projectID + "/tasks/" + taskID + "/blueprint/removetaskblueprint?taskId=" + taskID
+					type :POST
+					connection:"project"
+				];
+				// change the ticket status to pending approval
+				values_map = Map();
+				values_map.put("custom_status","2385580000000068235");
+				response = zoho.projects.update("ebi0rg",projectID,"tasks",taskID,values_map,"project");
+				info response;
+				// apply blueprint for the task 
+				detail = invokeurl
+				[
+					url :"https://projects.zoho.com/portal/restapi/portal/" + portal_id + "/tasks/" + taskID + "/taskdetails/"
+					type :GET
+					connection:"project"
+				];
+				info detail;
+				TASK_STATUS_ID = detail.get("STATUS_VALUE");
+				info "TASK_STATUS_ID >>" + TASK_STATUS_ID;
+				applyblueprintpremeters = Map();
+				applyblueprintpremeters.put("projectId",projectID);
+				applyblueprintpremeters.put("bluePrintId","2385580000000068229");
+				applyblueprintpremeters.put("considerCriteria","false");
+				applyblueprintpremeters.put("taskId",taskID);
+				applyblueprintpremeters.put("taskBlueprintStatusMappingArray","[{\"TASK_STATUS_ID\":" + TASK_STATUS_ID + ",\"BLUEPRINT_STATUS_ID\":" + TASK_STATUS_ID + "}]");
+				applyBlueprint = invokeurl
+				[
+					url :"https://projects.zoho.com/restapi/portal/" + portal_id + "/projects/" + projectID + "/tasks/" + taskID + "/blueprint/applytaskblueprint"
+					type :POST
+					parameters:applyblueprintpremeters
+					connection:"project"
+				];
+				break;
+			}
+		}
+	}
+}
+}
